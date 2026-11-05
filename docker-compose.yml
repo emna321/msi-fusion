@@ -1,0 +1,23 @@
+services:
+  ingestion:
+    build: ./services/ingestion
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://localhost:8001/health')"]
+      interval: 10s
+  fusion:
+    build: ./services/fusion
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://localhost:8002/health')"]
+      interval: 10s
+  gateway:
+    build: ./services/gateway
+    ports:
+      - "8000:8000"
+    environment:
+      INGESTION_URL: http://ingestion:8001
+      FUSION_URL: http://fusion:8002
+    depends_on:
+      ingestion:
+        condition: service_healthy
+      fusion:
+        condition: service_healthy
